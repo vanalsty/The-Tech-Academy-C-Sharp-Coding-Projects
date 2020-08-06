@@ -72,10 +72,10 @@ namespace CarInsurance.Controllers
                 quote += 25;
             }
 
-            if (insuree.CarMake.ToLower() == "Porsche")
+            if (insuree.CarMake.ToLower().Contains("porsche"))
             {
                 quote += 25;
-                if (insuree.CarModel.ToLower() == "911 Carerra")
+                if (insuree.CarModel.ToLower().Contains("911 carerra"))
                 {
                     quote += 25;
                 }
@@ -127,10 +127,59 @@ namespace CarInsurance.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+
         public ActionResult Edit([Bind(Include = "Id,FirstName,LastName,EmailAddress,DateOfBirth,CarYear,CarMake,CarModel,DUI,SpeedingTickets,CoverageType,Quote")] Insuree insuree)
         {
             if (ModelState.IsValid)
             {
+                decimal quote = 50;
+                var todayYear = DateTime.Now.Year;
+
+                if (todayYear - insuree.DateOfBirth.Year < 18)
+                {
+                    quote = quote + 50;
+                }
+                if (todayYear - insuree.DateOfBirth.Year < 25)
+                {
+                    quote = quote + 50;
+                }
+                else if (todayYear - insuree.DateOfBirth.Year > 24)
+                {
+                    quote = quote + 25;
+                }
+                if (insuree.CarYear < 2000)
+                {
+                    quote += 25;
+                }
+                if (insuree.CarYear > 2015)
+                {
+                    quote += 25;
+                }
+
+                if (insuree.CarMake.ToLower().Contains("porsche"))
+                {
+                    quote += 25;
+                    if (insuree.CarModel.ToLower().Contains("911 carerra"))
+                    {
+                        quote += 25;
+                    }
+                }
+
+                if (insuree.SpeedingTickets > 0)
+                {
+                    quote = insuree.SpeedingTickets * 10 + quote;
+                }
+
+                if (insuree.DUI == true)
+                {
+                    quote = quote * .25M + quote;
+                }
+
+                if (insuree.CoverageType == "full")
+                {
+                    quote = quote * .5M + quote;
+                }
+                insuree.Quote = quote;
                 db.Entry(insuree).State = EntityState.Modified;
                 db.SaveChanges();
                 return RedirectToAction("Index");
